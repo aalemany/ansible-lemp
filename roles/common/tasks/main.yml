@@ -1,8 +1,8 @@
 ---
 # Adjust /etc/hosts
 
-- name: Copy hosts file
-  copy: src=hosts dest=/etc/hosts
+#- name: Copy hosts file
+#  copy: src=hosts dest=/etc/hosts
 
 # Configure The Firewall
 
