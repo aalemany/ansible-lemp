@@ -1,0 +1,2 @@
+# Rsnapshot user
+backup localhost = NOPASSWD: /usr/bin/rsync

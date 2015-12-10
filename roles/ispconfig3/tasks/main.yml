@@ -1,0 +1,5 @@
+---
+- name: Download ISPConfig 3
+  command: wget http://www.ispconfig.org/downloads/ISPConfig-3-stable.tar.gz
+  args: 
+    chdir: /tmp

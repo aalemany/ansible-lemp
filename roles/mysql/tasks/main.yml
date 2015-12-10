@@ -1,0 +1,49 @@
+---
+# Install package and service
+- name: Install Mysql package
+  yum: name={{ item }} state=present
+  with_items:
+    - mysql
+    - mysql-server
+    - MySQL-python
+  notify: restart mysql
+
+- name: Start Mysql Service
+  service: name=mysqld state=started enabled=yes
+
+# Ansible mysql_secure_installation playbook
+
+- name: create mysql root pass
+  command: /usr/bin/openssl rand -base64 16
+  register: mysql_rand_passwd
+  when: mysql_root_passwd is not defined
+
+# Setting the root password ('localhost' needs to be the last item 
+# for idempotency, see http://ansible.cc/docs/modules.html#mysql-user)    
+- name: Change root user password on first run
+  mysql_user: user=root password="{{ mysql_rand_passwd.stdout | default(mysql_root_passwd) }}" host={{ item }} 
+  with_items:
+    - 127.0.0.1
+    - ::1
+    - localhost 
+
+- name: copy user my.cnf file with root passwd credentials
+  template: src=my.cnf.j2 dest=/root/.my.cnf owner=root group=root mode=0600
+
+- name: delete anonymous MySQL server user for {{ ansible_fqdn }}
+  mysql_user: user="" host="{{ ansible_fqdn }}" state="absent"
+ 
+- name: delete anonymous MySQL server user for localhost
+  mysql_user: user="" state="absent"
+ 
+- name: remove the MySQL test database
+  mysql_db: db=test state=absent  
+   
+- name: Removing root remote access
+  mysql_user: user="root" host="{{ ansible_fqdn }}" state="absent"
+
+- name: Remove access to test database
+  command: mysql -ne "DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%'"  
+  changed_when: False
+  ignore_errors: True
+  

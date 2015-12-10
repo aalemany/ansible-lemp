@@ -1,0 +1,14 @@
+#!/bin/sh
+
+USER="root" 
+PASS="{{ mysql_root_passwd | default('******') }}" 
+PARAMS="--single-transaction" 
+DATABASES=`mysqlshow -u $USER -p$PASS | awk '/[a-zA-Z0-9]/ {print $2}'`
+BACKUPDIR="/root/mysql" 
+
+for DBNAME in $DATABASES
+do
+    if [ $DBNAME != "Databases" ]; then
+        mysqldump -u $USER -p$PASS $PARAMS --databases $DBNAME | gzip > $BACKUPDIR/$DBNAME.sql.gz
+    fi
+done

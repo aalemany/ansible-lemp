@@ -1,0 +1,38 @@
+---
+# Install db dump script
+
+- name: Ensure scripts folder exists 
+  file: path=/root/scripts state=directory
+  
+- name: Ensure mysql folder exists 
+  file: path=/root/mysql state=directory
+
+- name: Install mysqldump script 
+  template: src=mysqldump.j2 dest=/root/scripts/mysqldump owner=root group=root mode=0700
+
+- name: Check if root has a crontab installed
+  stat: path=/var/spool/cron/root
+  register: crontab
+
+- name: Install crontab for root
+  file: path=/var/spool/cron/root state=touch owner=root mode=0600
+  when: crontab.stat.exists == False
+
+- name: Install cron job
+  lineinfile: dest=/var/spool/cron/root line="00 00 * * * /bin/sh /root/scripts/mysqldump &> /dev/null"  
+  
+# Create backup user  
+  
+- name: Create backup user
+  user: name=backup home=/var/backup 
+  
+- name: Enable sudo rsync for backup
+  template: src=rsnapshot dest=/etc/sudoers.d/rsnapshot
+  
+# Configure autohrized_keys  
+
+- name: Create .ssh folder  
+  file: path=/var/backup/.ssh state=directory mode=0700 name=backup group=backup
+  
+- name: Create authorized_keys file
+  file: path=/var/backup/.ssh/authorized_keys state=touch mode=0600 name=backup group=backup

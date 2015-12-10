@@ -1,0 +1,3 @@
+#!/bin/sh
+
+find /var/log/atop -mtime +15 -exec rm {} \;

@@ -1,0 +1,27 @@
+---
+- name: Install nrpe 
+  yum: name=nagios-nrpe state=present
+  
+- name: Activate nrpe service
+  service: name=nrpe state=started enabled=yes
+
+- name: Copy nrpe config file
+  copy: src=nrpe_local.cfg dest=/etc/nagios/nrpe_local.cfg
+  
+- name: Include nrpe local config
+  lineinfile: dest=/etc/nagios/nrpe.cfg line="include=/etc/nagios/nrpe_local.cfg"
+  notify: restart nrpe
+
+- name: Install Nagios plugins
+  yum: name={{ item }} state=present
+  with_items:
+    - nagios-plugins-disk
+    - nagios-plugins-load
+    - nagios-plugins-mailq
+    - nagios-plugins-perl
+    - nagios-plugins-procs
+    - nagios-plugins-users
+
+# TODO: Instalar alerta para detectar readonly filesystems (https://github.com/madrisan/nagios-plugins-filesystems)
+
+# TODO: Install & configure munin-node

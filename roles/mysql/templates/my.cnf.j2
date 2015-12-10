@@ -1,0 +1,3 @@
+[client]
+user=root
+password={{ mysql_rand_passwd.stdout | default(mysql_root_passwd) }}

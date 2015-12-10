@@ -1,0 +1,68 @@
+---
+# Install Dovecot
+
+- name: Install packages
+  yum: name={{ item }} state=present
+  with_items:
+    - dovecot
+    - dovecot-mysql    
+  
+- name: Creates Dovecot conf directory
+  file: path=/etc/dovecot state=directory
+  
+- name: Creates Dovecot conf file
+  file: path=/etc/dovecot/dovecot-sql.conf state=touch
+  
+- name: Create symlink for ISPConfig 3
+  file: src=/etc/dovecot/dovecot-sql.conf dest=/etc/dovecot-sql.conf state=link
+
+- name: Start Dovecot Service
+  service: name=dovecot state=started enabled=yes 
+  
+# Install Postfix  
+  
+- name: Check if Sendmail Exists
+  stat: path=/etc/init.d/sendmail
+  register: sendmail_status
+
+- name: Stop Sendmail 
+  service: name=sendmail state=stopped enabled=no
+  when: sendmail_status.stat.exists
+  
+- name: Start Postfix Service
+  service: name=postfix state=started enabled=yes  
+
+# Install Getmail
+
+- name: Install Getmail
+  yum: name=getmail state=present
+
+# Install Amavisd-new, SpamAssassin, And ClamAV
+
+- name: Install Amavisd-new, SpamAssassin, And ClamAV
+  yum: name={{ item }} state=present
+  with_items:
+    - amavisd-new
+    - spamassassin 
+    - clamav
+    - clamd
+    - unzip
+    - bzip2
+    - unrar 
+    - perl-DBD-mysql
+     
+- name: Update SpamAssassin
+  command: /usr/bin/sa-update -v   
+  ignore_errors: true    
+     
+- name: Update ClamAV     
+  command: /usr/bin/freshclam     
+     
+- name: Start Amavisd Service
+  service: name=amavisd state=started enabled=yes
+
+- name: Start Clamd Service
+  service: name=clamd state=stopped enabled=no
+  
+- name: Start clamd.amavisd service
+  service: name=clamd.amavisd state=started enabled=yes

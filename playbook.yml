@@ -1,0 +1,22 @@
+---
+- name: The Perfect Server - CentOS 6.4 x86_64 (nginx, Dovecot, ISPConfig 3)
+  hosts: 127.0.0.1
+  connection: local
+  remote_user: root
+  vars_files: 
+    - localhost.yml
+
+  roles:
+    - common
+    - mysql
+    - mail
+    - monitor
+    - backup
+    - nginx
+#    - ispconfig3
+#    - varnish
+
+#  vars_prompt:
+#    - name: "private_key_password"
+#      prompt: "Enter password to decrypt private key for the site"
+#      private: yes

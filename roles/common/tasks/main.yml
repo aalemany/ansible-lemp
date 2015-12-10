@@ -1,0 +1,102 @@
+---
+# Adjust /etc/hosts
+
+- name: Copy hosts file
+  copy: src=hosts dest=/etc/hosts
+
+# Configure The Firewall
+
+# TODO: Configurar firewall en /etc/sysconfig/iptables
+#- name: Set up iptables rules
+#  copy: src=iptables-save dest=/etc/sysconfig/iptables
+#  notify: restart iptables
+
+# Disable SELinux
+
+- name: Permanently Permissive SELinux
+  lineinfile: dest=/etc/selinux/config regexp=^SELINUX= line=SELINUX=disabled
+
+- name: Temporarily switch off SELinux
+  command: /usr/sbin/setenforce 0  
+  ignore_errors: yes
+
+# Configure repos
+
+- name: Enable the RPMforge repository
+  command: rpm -ivh http://pkgs.repoforge.org/rpmforge-release/rpmforge-release-0.5.3-1.el6.rf.x86_64.rpm
+  ignore_errors: yes
+
+- name: Copy the EPEL repository definition
+  copy: src=epel.repo dest=/etc/yum.repos.d/epel.repo
+
+- name: Copy the GPG key for REMI
+  copy: src=RPM-GPG-KEY-remi dest=/etc/pki/rpm-gpg
+
+- name: Copy the REMI repository definition
+  copy: src=remi/ dest=/etc/yum.repos.d/
+
+- name: Import the GPG key for REMI
+  command: rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-remi
+
+# Install software & updates
+
+- name: install yum-priorities
+  yum: name=yum-priorities state=present
+
+- name: upgrade all packages
+  yum: name=* state=latest
+  
+- name: Install various tools
+  yum: name={{ item }} state=present
+  with_items: ['vim', 'iotop', 'atop', 'htop', 'iftop', 'screen', 'rsync', 'strace', 'perl-CGI', 'zip']
+     
+- name: Install development tools
+  yum: name={{ item }} state=present
+  with_items: ['autoconf', 'automake', 'gcc', 'gcc-c++', 'git']
+  
+# Quota
+  
+- name: install quota
+  yum: name=quota state=present
+
+# TODO: Configurar quota en /etc/fstab: ,usrjquota=aquota.user,grpjquota=aquota.group,jqfmt=vfsv0
+# TODO: Activar quota con: mount -o remount /; quotacheck -avugm; quotaon -avug;
+
+# Synchronize The System Clock
+
+- name: install ntp
+  yum: name=ntp state=present
+  
+- name: enable & start ntp service
+  service: name=ntpd enabled=yes state=started
+  
+# Miscellanous  
+   
+- name: Create custom scripts folder
+  file: path=/root/scripts state=directory   
+
+- name: Enable compress in Logrotate
+  lineinfile: dest=/etc/logrotate.conf regexp=#compress line=compress
+
+- name: Add user sistemas
+  user: name=sistemas password={{ sistemas_passwd }}
+
+- name: Disable CTRL+ALT+SUPR
+  lineinfile: dest=/etc/init/control-alt-delete.conf regexp="^(exec /sbin/shutdown .*)" line=#\\1 backrefs=yes 
+
+- name: Change default SSH port 
+  lineinfile: dest=/etc/ssh/sshd_config regexp="^#Port" line="Port {{ ssh_port }}"
+
+- name: Disable root login
+  lineinfile: dest=/etc/ssh/sshd_config regexp="^#PermitRootLogin" line="PermitRootLogin no"
+  
+#- name: Configure allowed users in SSH 
+#  lineinfile: dest/etc/ssh/sshd_config line="AllowUsers sistemas"
+  
+- name: Cron task to remove atop logs  
+  copy: src=remove_atop_logs dest=/etc/cron.daily/remove_atop_logs
+  
+- name: Configure mail in /etc/aliases
+  lineinfile: "dest=/etc/aliases regexp='^#root:' line='root:		{{ root_email }}'"
+  notify: update aliases   
+  

@@ -1,0 +1,5 @@
+---
+ssh_port: 22
+sistemas_passwd:  
+mysql_root_passwd:   
+root_email: 

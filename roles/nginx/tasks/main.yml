@@ -1,0 +1,155 @@
+---
+# Install Nginx, PHP5 (PHP-FPM), And Fcgiwrap
+  
+- name: Check if httpd Exists
+  stat: path=/etc/init.d/httpd
+  register: httpd_status
+  
+- name: Stop http 
+  service: name=httpd state=stopped enabled=no
+  when: httpd_status.stat.exists
+  
+- name: Install nginx
+  yum: name=nginx state=present
+
+- name: Copy new nginx configuration file
+  copy: src=nginx.conf dest=/etc/nginx/nginx.conf backup=yes
+  
+- name: Activate nginx service 
+  service: name=nginx state=started enabled=yes  
+
+- name: install php-fpm 
+  yum: name={{ item }} state=present
+  with_items: ['php-fpm', 'php-cli', 'php-mysql', 'php-gd', 'php-pear', 'php-xml', 'php-pecl-apc', 'php-mbstring', 'php-mcrypt', 'php-soap']
+  
+#- name: Optional php modules 
+#  yum: name={{ item }} state=present
+#  with_items: ['php-imap', 'php-ldap', 'php-odbc', 'php-xmlrpc', 'php-magickwand', 'php-magpierss', 'php-mssql', 'php-shout', 'php-snmp', 'php-tidy']
+
+- name: Comment out original error_reporting
+  lineinfile: dest=/etc/php.ini regexp="^(error_reporting.*)" line=";\\1" backrefs=yes
+
+- name: Configure error_reporting
+  lineinfile: dest=/etc/php.ini insertafter="^;error_reporting = " line="error_reporting = E_ALL & ~E_NOTICE"
+
+- name: Configure pathinfo
+  lineinfile: dest=/etc/php.ini regexp="^cgi.fix_pathinfo=" line="cgi.fix_pathinfo=0"
+
+- name: Configure timezone
+  lineinfile: dest=/etc/php.ini regexp="^date.timezone = " line="date.timezone = \"Europe/Madrid\""
+
+- name: activate php-fpm service
+  service: name=php-fpm state=started enabled=yes
+
+# Install phpMyAdmin
+
+- name: Install phpMyAdmin
+  yum: name=phpmyadmin state=present
+
+- name: Configure access to phpmyadmin
+  lineinfile: dest=/usr/share/phpmyadmin/config.inc.php regexp="^(\$cfg\['Servers'\]\[\$i\]\['auth_type'\])" line="\\1 = 'http';" backrefs=yes
+
+# Install PureFTPd
+
+- name: Install PureFTPd
+  yum: name={{ item }} state=present
+  with_items:
+    - pure-ftpd
+    - openssl
+
+- name: Enable TLS in PureFTPd
+  lineinfile: dest=/etc/pure-ftpd/pure-ftpd.conf regexp="^# (TLS.*)" line="\\1" backrefs=yes
+  
+- name: Create certificate folder
+  file: path=/etc/ssl/private state=directory
+  
+- name: Generate self-signed certificate
+  command: openssl req -x509 -nodes -subj "/C=ES/ST=Barcelona/L=Barcelona/O=Ixole Activa SL/OU=Sistemas/CN=${ansible_fqdn}" -days 7300 -newkey rsa:2048 -keyout /etc/ssl/private/pure-ftpd.pem -out /etc/ssl/private/pure-ftpd.pem
+  notify: restart pure-ftpd 
+  
+- name: Change certificate permissions
+  file: path=/etc/ssl/private/pure-ftpd.pem mode=0600 
+  
+- name: Start PureFTPd 
+  service: name=pure-ftpd state=started enabled=yes
+
+# Install BIND
+
+- name: Install BIND
+  yum: name=bind state=present
+
+- name: ensure ROOTDIR line is comment out
+  lineinfile: dest=/etc/sysconfig/named regexp=^(ROOTDIR=.*) line="#\\1" backrefs=yes
+
+- name: check if /etc/named.conf exists
+  stat: path=/etc/named.conf
+  register: named_conf
+
+- name: Backup original named.conf file
+  command: mv /etc/named.conf /etc/named.conf_bak
+  when: named_conf.stat.exists
+
+- name: Copy named.conf file
+  copy: src=named.conf dest=/etc/named.conf 
+
+- name: Create the file /etc/named.conf.local
+  file: path=/etc/named.conf.local state=touch
+
+- name: Disable BIND 
+  service: name=named state=stopped enabled=no
+
+# Install Webalizer And AWStats
+
+- name: Install Webalizer And AWStats
+  yum: name={{ item }} state=present
+  with_items:
+    - webalizer
+    - awstats
+    - perl-DateTime-Format-HTTP 
+    - perl-DateTime-Format-Builder   
+
+- name: Copy AWStats conf file
+  copy: src=/etc/awstats/awstats.model.conf dest=/etc/awstats/awstats.conf
+
+# Install Jailkit
+
+- name: Check if jailkit is installed
+  stat: path=/usr/sbin/jk_chrootsh
+  register: jk_status
+
+- name: Install Jailkit
+  script: ../scripts/jailkit.sh
+  when: jk_status.stat.exists == false
+
+# Install fail2ban
+
+- name: Install fail2ban
+  yum: name=fail2ban state=present
+
+- name: Start Fail2ban 
+  service: name=fail2ban state=started enabled=yes
+
+- name: Configure fail2ban
+  lineinfile: dest=/etc/fail2ban/fail2ban.conf regexp="logtarget = " line="logtarget = /var/log/fail2ban.log"
+
+- name: Copy pureftpd rules
+  copy: src=pure-ftpd.conf dest=/etc/fail2ban/jail.d/pure-ftpd.conf
+
+# Install rkhunter
+
+- name: Install rkhunter
+  yum: name=rkhunter state=present
+
+- name: Disable mail on warning in rkhunter
+  lineinfile: dest=/etc/rkhunter.conf insertafter="^#MAIL-ON-WARNING=" line="MAIL-ON-WARNING=\"\""
+  
+- name: Disable ssh root user in rkhunter
+  lineinfile: dest=/etc/rkhunter.conf regexp="^ALLOW_SSH_ROOT_USER=" line="ALLOW_SSH_ROOT_USER=no"
+
+- name: Configure /etc/sysconfig/rkhunter
+  lineinfile: dest=/etc/sysconfig/rkhunter regexp=MAILTO= line="MAILTO=root"
+  
+- name: Update rkhunter properties
+  command: /usr/bin/rkhunter --propupd
+
+    

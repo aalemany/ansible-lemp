@@ -1,0 +1,13 @@
+Simple playbook based on this tutorial: https://www.howtoforge.com/perfect-server-centos-6.4-x86_64-nginx-dovecot-ispconfig-3-p3
+
+Lots of todo yet. For example: 
+- Update this README
+- Configure the firewall
+
+Things to do after executing playbook:
+- Adjust hostname
+- Activate quota  
+- Install ISPConfig 3
+ 
+
+
