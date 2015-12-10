@@ -13,7 +13,7 @@
     - monitor
     - backup
     - nginx
-#    - ispconfig3
+    - ispconfig3
 #    - varnish
 
 #  vars_prompt:

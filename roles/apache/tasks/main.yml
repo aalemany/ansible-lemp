@@ -1,0 +1,80 @@
+---
+# Installing Apache2 With mod_php, mod_fcgi/PHP5, And suPHP 
+    
+- name: Check if nginx exists
+  stat: path=/usr/sbin/nginx
+  register: nginx_status
+  
+- name: Stop nginx 
+  service: name=nginx state=stopped enabled=no
+  when: nginx_status.stat.exists    
+    
+- name: Install apache 
+  yum: name={{ item }} state=present
+  with_items: ['httpd', 'mod_ssl']
+  
+- name: Disable acces to .svn folders  
+  copy: src=svn.conf dest=/etc/httpd/conf.d/svn.conf
+  
+- name: Activate httpd service 
+  service: name=httpd state=started enabled=yes
+  
+- name: Install php 
+  yum: name={{ item }} state=present
+  with_items: ['php', 'php-cli', 'php-mysql', 'php-gd', 'php-pear', 'php-xml', 'php-pecl-apc', 'php-mbstring', 'php-mcrypt', 'php-soap', 'curl', 'curl-devel', 'perl-libwww-perl', 'ImageMagick', 'libxml2', 'libxml2-devel', 'mod_fcgid', 'httpd-devel']
+  
+#- name: Optional php modules 
+#  yum: name={{ item }} state=present
+#  with_items: ['php-imap', 'php-ldap', 'php-odbc', 'php-xmlrpc', 'php-magickwand', 'php-magpierss', 'php-mssql', 'php-shout', 'php-snmp', 'php-tidy']
+
+- name: Comment out original error_reporting
+  lineinfile: dest=/etc/php.ini regexp="^(error_reporting.*)" line=";\\1" backrefs=yes
+
+- name: Configure error_reporting
+  lineinfile: dest=/etc/php.ini insertafter="^;error_reporting = " line="error_reporting = error_reporting = E_ALL & ~E_NOTICE & ~E_DEPRECATED"
+
+- name: Configure pathinfo
+  lineinfile: dest=/etc/php.ini regexp="^cgi.fix_pathinfo=" line="cgi.fix_pathinfo=1"
+
+- name: Configure timezone
+  lineinfile: dest=/etc/php.ini regexp="^date.timezone = " line="date.timezone = \"Europe/Madrid\""
+
+# Install suPHP
+
+- name: Check if suPHP is installed
+  stat: path=/usr/sbin/suphp
+  register: suphp_status
+
+- name: Install suPHP
+  script: ../scripts/suphp.sh
+  when: suphp_status.stat.exists == false
+  
+- name: Enable suPHP dynamic module
+  copy: src=httpd_suphp.conf dest=/etc/httpd/conf.d/suphp.conf
+  notify: restart apache
+  
+- name: Copy suPHP config file
+  copy: src=suphp.conf dest=/etc/suphp.conf
+  notify: restart apache  
+
+# Install php-fpm
+
+- name: Install php-fpm 
+  yum: name={{ item }} state=present
+  with_items: ['php-fpm', 'mod_fastcgi']
+
+- name: Disable FastCgiWrapper 
+  lineinfile: dest=/etc/httpd/conf.d/fastcgi.conf regexp="^FastCgiWrapper" line="FastCgiWrapper Off"
+
+- name: Activate php-fpm service
+  service: name=php-fpm state=started enabled=yes
+
+# Install phpMyAdmin
+
+- name: Install phpMyAdmin
+  yum: name=phpmyadmin state=present
+
+#/etc/httpd/conf.d/phpMyAdmin.conf
+
+- name: Configure access to phpmyadmin
+  lineinfile: dest=/usr/share/phpmyadmin/config.inc.php regexp="^(\$cfg\['Servers'\]\[\$i\]\['auth_type'\])" line="\\1 = 'http';" backrefs=yes

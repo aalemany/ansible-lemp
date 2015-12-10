@@ -1,9 +1,12 @@
-Simple playbook based on this tutorial: https://www.howtoforge.com/perfect-server-centos-6.4-x86_64-nginx-dovecot-ispconfig-3-p3
+Simple playbook based on this tutorials: 
+
+https://www.howtoforge.com/perfect-server-centos-6.4-x86_64-nginx-dovecot-ispconfig-3-p3
+https://www.howtoforge.com/perfect-server-centos-6.5-apache2-mysql-php-pureftpd-postfix-dovecot-and-ispconfig3-p6
 
 Lots of todo yet. For example: 
 - Update this README
 - Configure the firewall
-- Install Fcgiwrap
+- Install Fcgiwrap (only with Nginx)
 - Install Roundcube
 
 Things to do after executing playbook:

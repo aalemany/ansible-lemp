@@ -100,3 +100,35 @@
   lineinfile: "dest=/etc/aliases regexp='^#root:' line='root:		{{ root_email }}'"
   notify: update aliases   
   
+# Install fail2ban
+
+- name: Install fail2ban
+  yum: name=fail2ban state=present
+
+- name: Configure fail2ban
+  lineinfile: dest=/etc/fail2ban/fail2ban.conf regexp="logtarget = " line="logtarget = /var/log/fail2ban.log"
+
+- name: Copy pureftpd rules
+  copy: src=pure-ftpd.conf dest=/etc/fail2ban/jail.d/pure-ftpd.conf
+  
+- name: Start Fail2ban 
+  service: name=fail2ban state=started enabled=yes
+
+# Install rkhunter
+
+- name: Install rkhunter
+  yum: name=rkhunter state=present
+
+- name: Disable mail on warning in rkhunter
+  lineinfile: dest=/etc/rkhunter.conf insertafter="^#MAIL-ON-WARNING=" line="MAIL-ON-WARNING=\"\""
+  
+- name: Disable ssh root user in rkhunter
+  lineinfile: dest=/etc/rkhunter.conf regexp="^ALLOW_SSH_ROOT_USER=" line="ALLOW_SSH_ROOT_USER=no"
+
+- name: Configure /etc/sysconfig/rkhunter
+  lineinfile: dest=/etc/sysconfig/rkhunter regexp=MAILTO= line="MAILTO=root"
+  
+- name: Update rkhunter properties
+  command: /usr/bin/rkhunter --propupd
+  
+ 
