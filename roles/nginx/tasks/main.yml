@@ -26,11 +26,8 @@
 #  yum: name={{ item }} state=present
 #  with_items: ['php-imap', 'php-ldap', 'php-odbc', 'php-xmlrpc', 'php-magickwand', 'php-magpierss', 'php-mssql', 'php-shout', 'php-snmp', 'php-tidy']
 
-- name: Comment out original error_reporting
-  lineinfile: dest=/etc/php.ini regexp="^(error_reporting.*)" line=";\\1" backrefs=yes
-
 - name: Configure error_reporting
-  lineinfile: dest=/etc/php.ini insertafter="^;error_reporting = " line="error_reporting = E_ALL & ~E_NOTICE"
+  lineinfile: dest=/etc/php.ini regexp="^error_reporting = " line="error_reporting = E_ALL & ~E_NOTICE"
 
 - name: Configure pathinfo
   lineinfile: dest=/etc/php.ini regexp="^cgi.fix_pathinfo=" line="cgi.fix_pathinfo=0"
