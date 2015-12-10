@@ -1,5 +1,12 @@
 ---
+# SSH default port
 ssh_port: 22
-sistemas_passwd:  
-mysql_root_passwd:   
+
+# Create password with: python -c 'import crypt; print crypt.crypt("This is my Password", "$1$SomeSalt$")'
+sistemas_passwd:
+  
+# Use plain text for Mysql  
+mysql_root_passwd:
+
+# Email to receive root alerts   
 root_email: 
