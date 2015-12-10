@@ -13,6 +13,9 @@ Things to do after executing playbook:
 - Adjust hostname
 - Activate quota  
 - Install ISPConfig 3
+
+Requirements: 
+- Tested with Ansible 1.9.4
  
 
 
