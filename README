@@ -3,6 +3,8 @@ Simple playbook based on this tutorial: https://www.howtoforge.com/perfect-serve
 Lots of todo yet. For example: 
 - Update this README
 - Configure the firewall
+- Install Fcgiwrap
+- Install Roundcube
 
 Things to do after executing playbook:
 - Adjust hostname
