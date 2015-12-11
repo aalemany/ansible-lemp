@@ -73,8 +73,16 @@
 
 # Install ISPConfig 3
 
+- name: Check if ISPConfig is already downloaded
+  stat: path=/tmp/ISPConfig-3-stable.tar.gz
+  register: ispconfig_status
+
 - name: Download ISPConfig 3
   command: wget http://www.ispconfig.org/downloads/ISPConfig-3-stable.tar.gz
   args: 
     chdir: /tmp
+  when: ispconfig_status.stat.exists == false
+    
+    
+    
     
