@@ -103,6 +103,9 @@
 - name: Cron task to remove atop logs  
   copy: src=remove_atop_logs dest=/etc/cron.daily/remove_atop_logs
   
+- name: Enable atop service
+  service: name=atop state=started enabled=yes
+  
 - name: Configure mail in /etc/aliases
   lineinfile: "dest=/etc/aliases regexp='^#root:' line='root:		{{ root_email }}'"
   notify: update aliases   
