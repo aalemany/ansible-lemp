@@ -1,3 +1,6 @@
 ---
 - name: update aliases
   command: /usr/bin/newaliases
+  
+- name: restart iptables
+  service: name=iptables state=restarted  
