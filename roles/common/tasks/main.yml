@@ -16,7 +16,7 @@
   notify: restart iptables
 
 - name: Disable iptables
-  service: name=iptables state=stopped enabled=no 
+  service: name=iptables state=started enabled=yes 
 
 # Disable SELinux
 
