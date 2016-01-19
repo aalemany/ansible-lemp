@@ -11,12 +11,16 @@
   register: iptables_status
 
 - name: Disable iptables
-  command: mv /etc/sysconfig/iptables /etc/sysconfig/iptables-disabled
+  command: mv /etc/sysconfig/iptables /etc/sysconfig/iptables_disabled
   when: iptables_status.stat.exists
   notify: restart iptables
 
-- name: Disable iptables
-  service: name=iptables state=started enabled=yes 
+- name: Add ip_conntrack_ftp module
+  lineinfile: dest=/etc/sysconfig/iptables-config regexp="^IPTABLES_MODULES=\"(((?!ip_conntrack_ftp).)*)\"$" line="IPTABLES_MODULES=\"\\1 ip_conntrack_ftp\"" backrefs=yes
+  notify: restart iptables
+
+- name: Enable iptables
+  service: name=iptables state=started enabled=yes
 
 # Disable SELinux
 
