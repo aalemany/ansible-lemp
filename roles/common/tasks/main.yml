@@ -11,7 +11,7 @@
   register: iptables_status
 
 - name: Disable iptables
-  command: mv /etc/sysconfig/iptables /etc/sysconfig/iptables.orig
+  command: mv /etc/sysconfig/iptables /etc/sysconfig/iptables-disabled
   when: iptables_status.stat.exists
   notify: restart iptables
 
