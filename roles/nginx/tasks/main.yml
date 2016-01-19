@@ -15,6 +15,9 @@
 - name: Copy new nginx configuration file
   copy: src=nginx.conf dest=/etc/nginx/nginx.conf backup=yes
   
+- name: Add fastcgi_param HTTPS
+  lineinfile: dest=/etc/nginx/fastcgi_params line="fastcgi_param  HTTPS              $https;"  
+  
 - name: Activate nginx service 
   service: name=nginx state=started enabled=yes  
 
