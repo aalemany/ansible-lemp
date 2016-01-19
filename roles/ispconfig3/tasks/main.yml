@@ -20,6 +20,9 @@
 - name: Change certificate permissions
   file: path=/etc/ssl/private/pure-ftpd.pem mode=0600 
   
+- name: Configure passive port range
+  lineinfile: dest=/etc/pure-ftpd/pure-ftpd.conf insertafter="^# PassivePortRange" line="PassivePortRange          40110 40210"
+  
 - name: Start PureFTPd 
   service: name=pure-ftpd state=started enabled=yes
 
