@@ -83,7 +83,7 @@
   file: path=/root/scripts state=directory   
 
 - name: Enable compress in Logrotate
-  lineinfile: dest=/etc/logrotate.conf regexp=#compress line=compress
+  lineinfile: dest=/etc/logrotate.conf regexp=#compress line=compress backrefs=yes
 
 - name: Add user sistemas
   user: name=sistemas password={{ sistemas_passwd }}
@@ -92,10 +92,10 @@
   lineinfile: dest=/etc/init/control-alt-delete.conf regexp="^(exec /sbin/shutdown .*)" line=#\\1 backrefs=yes 
 
 - name: Change default SSH port 
-  lineinfile: dest=/etc/ssh/sshd_config regexp="^#Port" line="Port {{ ssh_port }}"
+  lineinfile: dest=/etc/ssh/sshd_config regexp="^#?Port" line="Port {{ ssh_port }}" 
 
 - name: Disable root login
-  lineinfile: dest=/etc/ssh/sshd_config regexp="^#PermitRootLogin" line="PermitRootLogin no"
+  lineinfile: dest=/etc/ssh/sshd_config regexp="^#?PermitRootLogin" line="PermitRootLogin no" 
   
 #- name: Configure allowed users in SSH 
 #  lineinfile: dest/etc/ssh/sshd_config line="AllowUsers sistemas"
@@ -107,7 +107,7 @@
   service: name=atop state=started enabled=yes
   
 - name: Configure mail in /etc/aliases
-  lineinfile: "dest=/etc/aliases regexp='^#root:' line='root:		{{ root_email }}'"
+  lineinfile: "dest=/etc/aliases regexp='^#?root:' line='root:		{{ root_email }}'"
   notify: update aliases   
   
 # Install fail2ban
