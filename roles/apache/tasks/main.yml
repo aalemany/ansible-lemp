@@ -16,6 +16,15 @@
 - name: Disable acces to .svn folders  
   copy: src=svn.conf dest=/etc/httpd/conf.d/svn.conf
   
+- name: Hide Apache info page
+  file: path=/var/www/html/index.html state=touch  
+  
+- name: Change ServerTokens to Prod
+  lineinfile: path=/etc/httpd/conf/httpd.conf regexp="^ServerTokens" line="ServerTokens Prod"  
+  
+- name: Disable ServerSignature
+  lineinfile: path=/etc/httpd/conf/httpd.conf regexp="^ServerSignature" line="ServerSignature Off"
+  
 - name: Activate httpd service 
   service: name=httpd state=started enabled=yes
   
@@ -36,6 +45,9 @@
 - name: Configure timezone
   lineinfile: dest=/etc/php.ini regexp="^date.timezone = " line="date.timezone = \"Europe/Madrid\""
 
+- name: Configure DirectoryIndex
+  lineinfile: path=/etc/httpd/conf.d/php.conf regexp="^DirectoryIndex" line="DirectoryIndex index.html index.php"
+
 # Install suPHP
 
 - name: Check if suPHP is installed
@@ -53,6 +65,8 @@
 - name: Copy suPHP config file
   copy: src=suphp.conf dest=/etc/suphp.conf
   notify: restart apache  
+
+# TODO: Change custom session folder
 
 # Install php-fpm
 
