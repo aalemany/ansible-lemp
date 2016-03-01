@@ -18,4 +18,12 @@ Requirements:
 - Tested with Ansible 1.9.4
  
 
+,usrjquota=aquota.user,grpjquota=aquota.group,jqfmt=vfsv0
+mount -o remount /
+quotacheck -avugm
+quotaon -avug
 
+cd /tmp
+tar xzvf ISPConfig-3-stable.tar.gz
+cd ispconfig3_install/install
+php -q install.php
