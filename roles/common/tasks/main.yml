@@ -20,8 +20,9 @@
   notify: restart iptables
 
 - name: Enable iptables
-  service: name=iptables state=started enabled=yes
-
+  service: name=iptables enabled=yes
+  notify: restart iptables
+  
 # Disable SELinux
 
 - name: Permanently Permissive SELinux
