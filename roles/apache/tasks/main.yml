@@ -67,7 +67,7 @@
   notify: restart apache  
 
 - name: Create custom session folder
-  file: path=/var/lib/customsessionfolder state=directory owner=root group=apache mode=1777
+  file: path=/var/lib/php/customsessionfolder state=directory owner=root group=apache mode=1777
     
 - name: Change custom session folder
   copy: content="session.save_path = /var/lib/php/customsessionfolder" dest="/etc/php.d/customsession.ini"
