@@ -28,7 +28,10 @@
 - name: Stop Sendmail 
   service: name=sendmail state=stopped enabled=no
   when: sendmail_status.stat.exists
-  
+ 
+- name: Install Postfix
+  yum: name=postfix state=present
+ 
 - name: Start Postfix Service
   service: name=postfix state=started enabled=yes  
 
