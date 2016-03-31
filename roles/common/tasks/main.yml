@@ -25,8 +25,13 @@
   
 # Disable SELinux
 
+- name: Check if SELinux is installed
+  stat: path=/etc/selinux/config
+  register: selinux_config
+
 - name: Permanently Permissive SELinux
   lineinfile: dest=/etc/selinux/config regexp=^SELINUX= line=SELINUX=disabled
+  when: selinux_config.stat.exists
 
 - name: Temporarily switch off SELinux
   command: /usr/sbin/setenforce 0  
