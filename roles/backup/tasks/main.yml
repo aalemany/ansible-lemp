@@ -25,7 +25,10 @@
   
 - name: Create backup user
   user: name=backup home=/var/backup 
-  
+ 
+- name: Ensure sudo is installed
+  yum: name=sudo state=present
+ 
 - name: Enable sudo rsync for backup
   template: src=rsnapshot dest=/etc/sudoers.d/rsnapshot
   
